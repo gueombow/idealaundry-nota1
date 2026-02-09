@@ -2,19 +2,19 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>IDEALAUNDRY SYSTEM</title>
+<title>IDEALAUNDRY</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{font-family:monospace;max-width:380px;margin:auto;padding:10px}
 h2,h3{text-align:center;margin:4px 0}
-label{font-size:13px;margin-top:6px;display:block}
+label{font-size:13px;display:block;margin-top:6px}
 input,select{width:100%;padding:5px;font-family:monospace;box-sizing:border-box}
 .box{border:1px dashed #000;padding:6px;margin-top:6px}
 button{width:100%;padding:6px;margin-top:5px}
-.total{font-weight:bold;text-align:center;margin-top:10px}
-.itemRow{border-bottom:1px dashed #aaa;padding:4px 0;font-size:13px}
-.hapusBtn{background:#c00;color:#fff;border:none;padding:3px 6px;font-size:11px}
+.total{text-align:center;font-weight:bold;margin-top:10px}
+.item{border-bottom:1px dashed #aaa;padding:4px 0;font-size:13px}
+.hapus{background:#c00;color:#fff;border:none;padding:3px 6px;font-size:11px}
 @media print{body{width:58mm}button{display:none}.box{border:none}}
 </style>
 </head>
@@ -30,176 +30,145 @@ button{width:100%;padding:6px;margin-top:5px}
 
 <div class="box">
 <h3>DATA PELANGGAN</h3>
-<input type="text" id="namaPelanggan" placeholder="Nama">
-<input type="text" id="alamatPelanggan" placeholder="Alamat">
-<input type="text" id="telpPelanggan" placeholder="No. Telp">
+<input placeholder="Nama">
+<input placeholder="Alamat">
+<input placeholder="No. Telp">
 </div>
 
 <div class="box">
-<h3>KILOAN</h3>
+<h3>LAUNDRY KILOAN</h3>
 <select id="kiloan" onchange="hitung()">
-<option value="">Pilih layanan</option>
-<option value="7000">Cuci Setrika 7.000</option>
-<option value="6000">Cuci Lipat 6.000</option>
-<option value="8000">Express 8.000</option>
+<option value="">Pilih Layanan</option>
+<option value="7000">Cuci Setrika – Rp 7.000</option>
+<option value="6000">Cuci Lipat – Rp 6.000</option>
+<option value="8000">Express – Rp 8.000</option>
 </select>
-<input type="number" id="kg" value="0" placeholder="Kg" oninput="hitung()">
+<input type="number" id="kg" placeholder="Berat (Kg)" oninput="hitung()">
 </div>
 
 <div class="box">
-<h3>BARANG SATUAN</h3>
+<h3>LAUNDRY SATUAN</h3>
 <div id="listBarang"></div>
 
-<input type="text" id="namaBarang" placeholder="Nama Barang">
-<input type="text" id="hargaBarang" placeholder="Harga (Rp)">
+<input id="namaBarang" placeholder="Nama Barang">
+<input id="hargaBarang" placeholder="Harga (Rp)">
 <input type="number" id="jumlahBarang" value="1" placeholder="Jumlah">
 <button onclick="tambahBarang()">+ Tambah Barang</button>
 </div>
 
 <div class="box">
 <h3>PEMBAYARAN</h3>
-<input type="text" id="dp" value="0" placeholder="DP (Rp)">
-<select id="statusBayar" onchange="tampilStatus()">
-<option value="BELUM LUNAS">BELUM LUNAS</option>
-<option value="LUNAS">LUNAS</option>
+<input id="dp" placeholder="DP (Rp)" value="0">
+<select id="statusBayar">
+<option>BELUM LUNAS</option>
+<option>LUNAS</option>
 </select>
 </div>
 
 <div class="total">
-Total : Rp <span id="total">0</span><br>
+TOTAL : Rp <span id="total">0</span><br>
 DP : Rp <span id="dpText">0</span><br>
-Sisa : Rp <span id="sisa">0</span><br>
+SISA : Rp <span id="sisa">0</span><br>
 <span id="statusText"></span>
 </div>
 
 <div class="box">
 <h3>REKAP HARI INI</h3>
-Transaksi : <span id="rekapTransaksi">0</span><br>
-Omset : Rp <span id="rekapOmset">0</span>
+Transaksi : <span id="trx">0</span><br>
+Omset : Rp <span id="omset">0</span>
 </div>
 
-<button onclick="simpanTransaksi()">Simpan Transaksi</button>
+<button onclick="simpan()">Simpan Transaksi</button>
 <button onclick="window.print()">Print</button>
 
 <script>
 const today=new Date();
-const tglKey=today.toISOString().split("T")[0];
+const key=today.toISOString().slice(0,10);
 tanggal.innerText=today.toLocaleDateString("id-ID");
 
-// ================= NOMOR NOTA OTOMATIS =================
-let nomor=localStorage.getItem("nota_"+tglKey);
-nomor=nomor?parseInt(nomor)+1:1;
-localStorage.setItem("nota_"+tglKey,nomor);
-nota.innerText=tglKey.replace(/-/g,"")+"-"+nomor;
+// NOTA OTOMATIS
+let no=localStorage.getItem("nota_"+key);
+no=no?parseInt(no)+1:1;
+localStorage.setItem("nota_"+key,no);
+nota.innerText=key.replace(/-/g,"")+"-"+no;
 
-// ================= DATA BARANG =================
-let dataBarang=[];
+// DATA BARANG
+let barang=[];
 
-function formatRupiah(angka){
- return Number(angka).toLocaleString("id-ID");
-}
+function rp(x){return Number(x).toLocaleString("id-ID")}
 
 function tambahBarang(){
- let nama=namaBarang.value;
- let harga=parseInt(hargaBarang.value.replace(/\./g,''))||0;
- let jumlah=parseInt(jumlahBarang.value)||0;
- if(!nama||harga<=0||jumlah<=0)return;
+ let n=namaBarang.value;
+ let h=parseInt(hargaBarang.value.replace(/\./g,''))||0;
+ let j=parseInt(jumlahBarang.value)||0;
+ if(!n||h<=0||j<=0)return;
 
- let totalItem=harga*jumlah;
- dataBarang.push({nama,harga,jumlah,total:totalItem});
- renderBarang();
- namaBarang.value="";
- hargaBarang.value="";
- jumlahBarang.value=1;
+ barang.push({n,h,j,t:h*j});
+ render();
  hitung();
+ namaBarang.value="";hargaBarang.value="";jumlahBarang.value=1;
 }
 
-function hapusBarang(i){
- dataBarang.splice(i,1);
- renderBarang();
- hitung();
+function hapus(i){
+ barang.splice(i,1);
+ render();hitung();
 }
 
-function renderBarang(){
+function render(){
  listBarang.innerHTML="";
- dataBarang.forEach((b,i)=>{
+ barang.forEach((b,i)=>{
   listBarang.innerHTML+=`
-  <div class="itemRow">
-  <b>${b.nama}</b><br>
-  Rp ${formatRupiah(b.harga)} x ${b.jumlah}
-  = Rp ${formatRupiah(b.total)}<br>
-  <button class="hapusBtn" onclick="hapusBarang(${i})">Hapus</button>
+  <div class="item">
+  <b>${b.n}</b><br>
+  Rp ${rp(b.h)} x ${b.j} = Rp ${rp(b.t)}<br>
+  <button class="hapus" onclick="hapus(${i})">Hapus</button>
   </div>`;
  });
 }
 
-// ================= HITUNG TOTAL =================
 function hitung(){
- let totalKilo=(kg.value||0)*(kiloan.value||0);
- let totalBarang=0;
- dataBarang.forEach(b=>totalBarang+=b.total);
- let totalAll=totalKilo+totalBarang;
+ let kilo=(kg.value||0)*(kiloan.value||0);
+ let satuan=barang.reduce((a,b)=>a+b.t,0);
+ let totalAll=kilo+satuan;
 
- let dpValue=parseInt(dp.value.replace(/\./g,''))||0;
+ let dpVal=parseInt(dp.value.replace(/\./g,''))||0;
 
- total.innerText=formatRupiah(totalAll);
- dpText.innerText=formatRupiah(dpValue);
- let sisaValue=totalAll-dpValue;
- sisa.innerText=formatRupiah(sisaValue>0?sisaValue:0);
+ total.innerText=rp(totalAll);
+ dpText.innerText=rp(dpVal);
+ let sisaVal=totalAll-dpVal;
+ sisa.innerText=rp(sisaVal>0?sisaVal:0);
 
- if(sisaValue<=0 && totalAll>0){
-  statusBayar.value="LUNAS";
- }else{
-  statusBayar.value="BELUM LUNAS";
- }
- tampilStatus();
-}
-
-// format input rupiah
-hargaBarang.addEventListener("input",e=>{
- let angka=e.target.value.replace(/\D/g,'');
- e.target.value=formatRupiah(angka);
-});
-dp.addEventListener("input",e=>{
- let angka=e.target.value.replace(/\D/g,'');
- e.target.value=formatRupiah(angka);
- hitung();
-});
-
-function tampilStatus(){
+ statusBayar.value=sisaVal<=0&&totalAll>0?"LUNAS":"BELUM LUNAS";
  statusText.innerText="STATUS : "+statusBayar.value;
  statusText.style.color=statusBayar.value==="LUNAS"?"green":"red";
 }
 
-// ================= SIMPAN & REKAP =================
-function simpanTransaksi(){
- let totalAll=parseInt(total.innerText.replace(/\./g,''))||0;
- if(totalAll<=0)return alert("Belum ada transaksi");
-
- let data=JSON.parse(localStorage.getItem("rekap_"+tglKey))||{
-  transaksi:0,
-  omset:0
- };
-
- data.transaksi+=1;
- data.omset+=totalAll;
-
- localStorage.setItem("rekap_"+tglKey,JSON.stringify(data));
- loadRekap();
- alert("Transaksi disimpan!");
+hargaBarang.oninput=e=>{
+ e.target.value=rp(e.target.value.replace(/\D/g,''));
+}
+dp.oninput=e=>{
+ e.target.value=rp(e.target.value.replace(/\D/g,''));
+ hitung();
 }
 
-function loadRekap(){
- let data=JSON.parse(localStorage.getItem("rekap_"+tglKey))||{
-  transaksi:0,
-  omset:0
- };
- rekapTransaksi.innerText=data.transaksi;
- rekapOmset.innerText=formatRupiah(data.omset);
+// REKAP
+function simpan(){
+ let t=parseInt(total.innerText.replace(/\./g,''))||0;
+ if(t<=0)return alert("Belum ada transaksi");
+
+ let d=JSON.parse(localStorage.getItem("rekap_"+key))||{trx:0,omset:0};
+ d.trx++; d.omset+=t;
+ localStorage.setItem("rekap_"+key,JSON.stringify(d));
+ load();
+ alert("Transaksi disimpan");
 }
 
-loadRekap();
-tampilStatus();
+function load(){
+ let d=JSON.parse(localStorage.getItem("rekap_"+key))||{trx:0,omset:0};
+ trx.innerText=d.trx;
+ omset.innerText=rp(d.omset);
+}
+load();
 </script>
 
 </body>
