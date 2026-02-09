@@ -39,6 +39,10 @@ input,select{
  text-align:center;
  margin-top:10px;
 }
+#statusText{
+ font-size:16px;
+ font-weight:bold;
+}
 button{
  width:100%;
  padding:8px;
@@ -71,8 +75,18 @@ Telp 0851-7957-8282
 <hr>
 
 <div class="box">
+<h3>DATA PELANGGAN</h3>
+<label>Nama</label>
+<input type="text" id="namaPelanggan">
+<label>Alamat</label>
+<input type="text" id="alamatPelanggan">
+<label>No. Telp</label>
+<input type="text" id="telpPelanggan">
+</div>
+
+<div class="box">
 <h3>KILOAN</h3>
-<select id="kiloan" onchange="setHarga()">
+<select id="kiloan" onchange="hitung()">
 <option value="">Pilih layanan</option>
 <option value="7000">Cuci setrika reguler (3 hari) Rp 7.000</option>
 <option value="6000">Cuci lipat (3 hari) Rp 6.000</option>
@@ -93,8 +107,17 @@ Telp 0851-7957-8282
 <input type="number" id="qty" value="1" oninput="hitung()">
 </div>
 
+<div class="box">
+<h3>PEMBAYARAN</h3>
+<select id="statusBayar" onchange="tampilStatus()">
+<option value="LUNAS">LUNAS</option>
+<option value="BELUM LUNAS">BELUM LUNAS</option>
+</select>
+</div>
+
 <div class="total">
-TOTAL : Rp <span id="total">0</span>
+TOTAL : Rp <span id="total">0</span><br>
+<span id="statusText"></span>
 </div>
 
 <p>Terima kasih telah memilih laundry kami</p>
@@ -120,14 +143,18 @@ const s=new Date(n.getTime()+3*86400000);
 selesai.innerText=
 pad(s.getDate())+"/"+pad(s.getMonth()+1)+"/"+s.getFullYear();
 
-function setHarga(){
- hitung();
-}
 function hitung(){
  let totalKilo=(kg.value||0)*(kiloan.value||0);
  let totalSat=(hargaSatuan.value||0)*(qty.value||0);
  total.innerText=(totalKilo+totalSat).toLocaleString("id-ID");
 }
+
+function tampilStatus(){
+ statusText.innerText="STATUS : "+statusBayar.value;
+ statusText.style.color = statusBayar.value==="LUNAS" ? "green" : "red";
+}
+tampilStatus();
+
 async function share(){
  const canvas=await html2canvas(struk,{scale:2});
  canvas.toBlob(b=>{
