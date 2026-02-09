@@ -25,7 +25,12 @@ button{width:100%;padding:6px;margin-top:5px}
 
 <div class="box">
 <b>No Nota:</b> <span id="nota"></span><br>
-<b>Tanggal:</b> <span id="tanggal"></span>
+
+<label>Tanggal Masuk</label>
+<input type="date" id="tglMasuk">
+
+<label>Tanggal Selesai</label>
+<input type="date" id="tglSelesai">
 </div>
 
 <div class="box">
@@ -84,7 +89,11 @@ Omset : Rp <span id="omset">0</span>
 <script>
 const today=new Date();
 const key=today.toISOString().slice(0,10);
-tanggal.innerText=today.toLocaleDateString("id-ID");
+
+// TANGGAL MASUK & SELESAI DEFAULT
+tglMasuk.valueAsDate = today;
+const selesai = new Date(today.getTime()+3*86400000);
+tglSelesai.valueAsDate = selesai;
 
 // NOTA OTOMATIS
 let no=localStorage.getItem("nota_"+key);
@@ -94,7 +103,6 @@ nota.innerText=key.replace(/-/g,"")+"-"+no;
 
 // DATA BARANG
 let barang=[];
-
 function rp(x){return Number(x).toLocaleString("id-ID")}
 
 function tambahBarang(){
@@ -104,14 +112,12 @@ function tambahBarang(){
  if(!n||h<=0||j<=0)return;
 
  barang.push({n,h,j,t:h*j});
- render();
- hitung();
+ render();hitung();
  namaBarang.value="";hargaBarang.value="";jumlahBarang.value=1;
 }
 
 function hapus(i){
- barang.splice(i,1);
- render();hitung();
+ barang.splice(i,1);render();hitung();
 }
 
 function render(){
