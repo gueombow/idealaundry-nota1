@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>IDEALAUNDRY Nota</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- PWA -->
+<link rel="manifest" href="data:application/json,{
+ &quot;name&quot;:&quot;IDEALAUNDRY&quot;,
+ &quot;short_name&quot;:&quot;IDEALAUNDRY&quot;,
+ &quot;start_url&quot;:&quot;.&quot;,
+ &quot;display&quot;:&quot;standalone&quot;
+}">
+
+<style>
+body{
+ font-family: monospace;
+ max-width:380px;
+ margin:auto;
+ padding:10px;
+}
+h2,h3{text-align:center;margin:4px 0}
+p{text-align:center;font-size:12px;margin:2px}
+label{font-size:13px;margin-top:6px;display:block}
+input,select{
+ width:100%;
+ padding:5px;
+ font-family:monospace;
+}
+.box{
+ border:1px dashed #000;
+ padding:6px;
+ margin-top:6px;
+}
+.total{
+ font-size:18px;
+ font-weight:bold;
+ text-align:center;
+ margin-top:10px;
+}
+button{
+ width:100%;
+ padding:8px;
+ margin-top:6px;
+}
+@media print{
+ body{width:58mm}
+ button{display:none}
+ .box{border:none}
+}
+</style>
+</head>
+
+<body>
+
+<div id="struk">
+
+<div>
+<b>No Nota:</b> <span id="nota"></span><br>
+<b>Masuk:</b> <span id="masuk"></span><br>
+<b>Selesai:</b> <span id="selesai"></span>
+</div>
+<hr>
+
+<h2>IDEALAUNDRY</h2>
+<p>
+Perum Cijujung Permai Blok D No 11<br>
+Telp 0851-7957-8282
+</p>
+<hr>
+
+<div class="box">
+<h3>KILOAN</h3>
+<select id="kiloan" onchange="setHarga()">
+<option value="">Pilih layanan</option>
+<option value="7000">Cuci setrika reguler (3 hari) Rp 7.000</option>
+<option value="6000">Cuci lipat (3 hari) Rp 6.000</option>
+<option value="8000">Cuci lipat xpress (1 hari) Rp 8.000</option>
+<option value="6000">Setrika (1 hari) Rp 6.000</option>
+</select>
+<label>Berat (Kg)</label>
+<input type="number" id="kg" value="1" oninput="hitung()">
+</div>
+
+<div class="box">
+<h3>SATUAN</h3>
+<label>Nama Layanan</label>
+<input type="text" id="namaSatuan">
+<label>Harga</label>
+<input type="number" id="hargaSatuan" oninput="hitung()">
+<label>Jumlah</label>
+<input type="number" id="qty" value="1" oninput="hitung()">
+</div>
+
+<div class="total">
+TOTAL : Rp <span id="total">0</span>
+</div>
+
+<p>Terima kasih telah memilih laundry kami</p>
+
+</div>
+
+<button onclick="window.print()">Print Thermal</button>
+<button onclick="share()">Share WhatsApp (JPG)</button>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const n=new Date();
+const pad=n=>n<10?'0'+n:n;
+
+nota.innerText="IL-"+n.getFullYear()+pad(n.getMonth()+1)+pad(n.getDate())+
+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());
+
+masuk.innerText=
+pad(n.getDate())+"/"+pad(n.getMonth()+1)+"/"+n.getFullYear()+" "+
+pad(n.getHours())+":"+pad(n.getMinutes());
+
+const s=new Date(n.getTime()+3*86400000);
+selesai.innerText=
+pad(s.getDate())+"/"+pad(s.getMonth()+1)+"/"+s.getFullYear();
+
+function setHarga(){
+ hitung();
+}
+function hitung(){
+ let totalKilo=(kg.value||0)*(kiloan.value||0);
+ let totalSat=(hargaSatuan.value||0)*(qty.value||0);
+ total.innerText=(totalKilo+totalSat).toLocaleString("id-ID");
+}
+async function share(){
+ const canvas=await html2canvas(struk,{scale:2});
+ canvas.toBlob(b=>{
+  const f=new File([b],"nota.jpg",{type:"image/jpeg"});
+  navigator.share({files:[f],title:"Nota IDEALAUNDRY"});
+ });
+}
+</script>
+
+</body>
+</html>
